@@ -26,7 +26,7 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 }
 
 func RegisterRoutesTransferRest(cliCtx context.CLIContext, r *mux.Router,cdc *codec.Codec) {
-	r.HandleFunc("/bank/accounts/sign/{address}transfer",SendSignRequestHandlerFn(cliCtx,cdc)).Methods("POST")
+	r.HandleFunc("/bank/accounts/sign/{address}/transfer",SendSignRequestHandlerFn(cliCtx,cdc)).Methods("POST")
 }
 
 
