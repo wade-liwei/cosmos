@@ -67,9 +67,11 @@ func SendSignRequestHandlerFn(cliCtx context.CLIContext,cdc *codec.Codec)http.Ha
 		txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 		//txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 		cliCtx := context.NewCLIContextForRest(req.BaseReq.From).
-			WithCodec(cdc).
+			WithCodec(cdc)
 			//WithAccountDecoder(cdc)
 
+
+		//msg := bank.NewMsgSend(fromAddr, toAddr, req.Amount)
 		msg := types.NewMsgSend(fromAddr, toAddr, req.Amount)
 
 		hashStr, err := utils.GenerateOrBroadcastMsgsForRest(cliCtx, txBldr, []sdk.Msg{msg}, false); 
