@@ -29,3 +29,51 @@ func runListCmd(cmd *cobra.Command, args []string) error {
 	}
 	return err
 }
+
+
+
+
+
+// used for outputting keys.Info over REST
+type KeyOutput struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+	// TODO add pubkey?
+	// Pubkey  string `json:"pubkey"`
+}
+
+func QueryKeysRequestHandler(w http.ResponseWriter, r *http.Request) {
+
+	kb, err := NewKeyBaseFromHomeFlag()
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	infos, err := kb.List()
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+
+
+	// an empty list will be JSONized as null, but we want to keep the empty list
+	if len(infos) == 0 {
+		w.Write([]byte("[]"))
+		return
+	}
+	keysOutput := make([]KeyOutput, len(infos))
+	for i, info := range infos {
+		keysOutput[i] = KeyOutput{Name: info.GetName(), Address: info.GetAddress().String()}
+	}
+	output, err := json.MarshalIndent(keysOutput, "", "  ")
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Write(output)
+}

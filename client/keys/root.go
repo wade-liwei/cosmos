@@ -32,3 +32,11 @@ func Commands() *cobra.Command {
 	)
 	return cmd
 }
+
+
+
+// Register REST endpoints
+func RegisterRoutes(r *mux.Router) {
+	r.HandleFunc("/keys", QueryKeysRequestHandler).Methods("GET")
+	r.HandleFunc("/keys", AddNewKeyRequestHandler).Methods("POST")
+}

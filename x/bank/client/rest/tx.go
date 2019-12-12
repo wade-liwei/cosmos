@@ -17,12 +17,84 @@ import (
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/bank/accounts/{address}/transfers", SendRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/bank/balances/{address}", QueryBalancesRequestHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/bank/accounts/sign/{address}transfer",SendSignRequestHandlerFn).Methods("POST")
 }
 
 // SendReq defines the properties of a send request's body.
 type SendReq struct {
 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
 	Amount  sdk.Coins    `json:"amount" yaml:"amount"`
+}
+
+
+func SendSignRequestHandlerFn(cliCtx context.CLIContext)http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		bech32Addr := vars["address"]
+
+		toAddr, err := sdk.AccAddressFromBech32(bech32Addr)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		var req SendReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+
+
+		account, err := cliCtx.GetAccount(fromAddr)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		
+
+
+		account, err := cliCtx.GetAccount(fromAddr)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		
+
+
+		fmt.Printf("req.BaseReq.From:  %v  fromAddr: %v  toAddr: %v  amount: %v   account: %v \n", req.BaseReq.From,fromAddr, toAddr, req.Amount,account)
+
+
+		txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+		cliCtx := context.NewCLIContextForRest(req.BaseReq.From).
+			WithCodec(cdc).
+			WithAccountDecoder(cdc)
+
+
+		msg := bank.NewMsgSend(fromAddr, toAddr, req.Amount)
+		hashStr, err := utils.GenerateOrBroadcastMsgsForRest(cliCtx, txBldr, []sdk.Msg{msg}, false); 
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+	
+		fmt.Printf("hash str:  %v  ----------------\n",hashStr)
+		w.Write([]byte(hashStr))
+
+
+		// msg := types.NewMsgSend(fromAddr, toAddr, req.Amount)
+		// utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
 }
 
 // SendRequestHandlerFn - http request handler to send coins to a address.

@@ -300,3 +300,111 @@ func printCreate(cmd *cobra.Command, info keys.Info, showMnemonic bool, mnemonic
 
 	return nil
 }
+
+
+
+
+
+// REST
+
+type NewKeyBody struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	// TODO make seed mandatory
+	// Seed     string `json="seed"`
+	Type string `json:"type"`
+}
+
+
+func AddNewKeyRequestHandler(w http.ResponseWriter, r *http.Request) {
+	var kb keys.Keybase
+	var m NewKeyBody
+
+	kb, err := NewKeyBaseFromHomeFlag()
+	if err != nil {
+		w.WriteHeader(400)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&m)
+	if err != nil {
+		w.WriteHeader(400)
+		w.Write([]byte("already exited"))
+		return
+	}
+	if m.Name == "" {
+		w.WriteHeader(400)
+		w.Write([]byte("You have to specify a name for the locally stored account."))
+		return
+	}
+
+	_, err = kb.Get(m.Name)
+	if err == nil {
+		w.WriteHeader(500)
+		w.Write([]byte("already existed"))
+		return
+	}
+
+	// Get bip39 mnemonic
+	var mnemonic string
+	
+    // read entropy seed straight from crypto.Rand and convert to mnemonic
+	entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	
+	mnemonic, err = bip39.NewMnemonic(entropySeed[:])
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	
+
+	info, err := kb.CreateAccount(m.Name, mnemonic, "",m.Password, 0, 0)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	//printKeyInfo(info, keys.Bech32KeyOutput)
+	res := NewKeyResBody{
+		Name:   m.Name,
+		Password: m.Password,
+		Mnemonic:mnemonic,
+		Address:info.GetAddress().String(),
+	}
+
+	fmt.Println("post new addr -------------------------")
+	fmt.Println(string(info.GetAddress()))
+
+
+	output, err := json.Marshal(res)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	//info.GetAddress()
+	// output, err := json.MarshalIndent(res, "", "  ")
+	w.Write(output)
+}
+
+
+
+type NewKeyResBody struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	Mnemonic string  `json:"mnemonic"`
+	// TODO make seed mandatory
+	// Seed     string `json="seed"`
+	Address  string `json:"address"`
+}
+
+

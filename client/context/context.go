@@ -53,6 +53,89 @@ type CLIContext struct {
 	SkipConfirm   bool
 }
 
+
+
+func NewCLIContextForRest(fromAddr string)CLIContext{
+
+	var rpc rpcclient.Client
+
+	nodeURI := viper.GetString(client.FlagNode)
+	if nodeURI != "" {
+		rpc = rpcclient.NewHTTP(nodeURI, "/websocket")
+	}
+
+
+	fmt.Printf("cli nodeURI flag:  %v  \n",nodeURI)
+
+	// fromAddress, fromName, err := GetFromFields(from, genOnly)
+	// if err != nil {
+	// 	fmt.Printf("failed to get from fields: %v", err)
+	// 	os.Exit(1)
+	// }
+
+
+	fromAddress, fromName, err := GetSdkAddress(fromAddr)
+	if err != nil {
+		fmt.Printf("failed to get from fields: %v", err)
+		os.Exit(1)
+	}
+
+
+	// We need to use a single verifier for all contexts
+	if verifier == nil || verifierHome != viper.GetString(cli.HomeFlag) {
+		verifier = createVerifier()
+		verifierHome = viper.GetString(cli.HomeFlag)
+	}
+
+
+
+	res := CLIContext{
+		Client:        rpc,
+		Output:        os.Stdout,
+		NodeURI:       nodeURI,
+		AccountStore:  auth.StoreKey,
+		From:          fromName,
+		OutputFormat:  viper.GetString(cli.OutputFlag),
+		Height:        viper.GetInt64(client.FlagHeight),
+		TrustNode:     viper.GetBool(client.FlagTrustNode),
+		UseLedger:     viper.GetBool(client.FlagUseLedger),
+		BroadcastMode: "sync",
+		PrintResponse: viper.GetBool(client.FlagPrintResponse),
+		Verifier:      verifier,
+		Simulate:      viper.GetBool(client.FlagDryRun),
+		GenerateOnly:  false,
+		FromAddress:   fromAddress,
+		FromName:      fromName,
+		Indent:        viper.GetBool(client.FlagIndentResponse),
+		SkipConfirm:   viper.GetBool(client.FlagSkipConfirmation),
+	}
+
+	fmt.Printf(`
+	Client:        %v
+	Output:        %v
+	NodeURI:       %v
+	AccountStore:  %v
+	From:          %v
+	OutputFormat:  %v
+	Height:        %v
+	TrustNode:     %v
+	UseLedger:     %v
+	BroadcastMode: %v
+	PrintResponse: %v
+	Verifier:      %v
+	Simulate:      %v
+	GenerateOnly:  %v
+	FromAddress:   %v
+	FromName:      %v
+	Indent:        %v
+	SkipConfirm:   %v		
+	`,res.Client,res.Output,res.NodeURI,res.AccountStore,res.From,res.OutputFormat,res.Height,res.TrustNode,res.UseLedger,res.BroadcastMode,res.PrintResponse,res.Verifier,res.Simulate,res.GenerateOnly,res.FromAddress,res.FromName,res.Indent,res.SkipConfirm)
+
+	return res
+
+}
+
+
 // NewCLIContextWithFrom returns a new initialized CLIContext with parameters from the
 // command line using Viper. It takes a key name or address and populates the FromName and
 // FromAddress field accordingly.

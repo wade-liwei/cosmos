@@ -40,6 +40,71 @@ func GenerateOrBroadcastMsgs(cliCtx context.CLIContext, txBldr authtypes.TxBuild
 	return CompleteAndBroadcastTxCLI(txBldr, cliCtx, msgs)
 }
 
+
+func GenerateOrBroadcastMsgsForRest(cliCtx context.CLIContext, txBldr authtxb.TxBuilder, msgs []sdk.Msg, offline bool) (string,error) {
+	fmt.Printf("cliCtx.GenerateOnly:  %v  --------------------------------\n",cliCtx.GenerateOnly )
+
+	return CompleteAndBroadcastTxCLIForRest(txBldr, cliCtx, msgs)
+}
+
+
+func CompleteAndBroadcastTxCLIForRest(txBldr authtxb.TxBuilder, cliCtx context.CLIContext, msgs []sdk.Msg) (string,error) {
+	
+	fmt.Println("CompleteAndBroadcastTxCLI-------------------------------------")
+	fmt.Println("0000000000000000----------------")
+	txBldr, err := PrepareTxBuilder(txBldr, cliCtx)
+	if err != nil {
+		return "",err
+	}
+
+
+	fmt.Println("11111111-------------")
+	fromName := cliCtx.GetFromName()
+	fmt.Println("222222----------------")
+
+	if txBldr.SimulateAndExecute() || cliCtx.Simulate {
+		txBldr, err = EnrichWithGas(txBldr, cliCtx, msgs)
+		if err != nil {
+			return "",err
+		}
+
+		gasEst := GasEstimateResponse{GasEstimate: txBldr.Gas()}
+		fmt.Fprintf(os.Stderr, "%s\n", gasEst.String())
+	}
+
+	if cliCtx.Simulate {
+		return "",nil
+	}
+
+
+	passphrase :="beconomy" 
+
+
+	fmt.Printf("GetPassphrase  fromName: %v   return value:  %v   ------------- \n",fromName,passphrase)
+
+	// build and sign the transaction
+	txBytes, err := txBldr.BuildAndSign(fromName, passphrase, msgs)
+	if err != nil {
+		return "", err
+	}
+
+	// broadcast to a Tendermint node
+	res, err := cliCtx.BroadcastTx(txBytes)
+	if err != nil {
+		return "",err
+	}
+
+	if err := cliCtx.PrintOutput(res); err != nil{
+		return "",err 
+	}
+
+	return   res.TxHash,nil 
+}
+
+
+
+
+
 // CompleteAndBroadcastTxCLI implements a utility function that facilitates
 // sending a series of messages in a signed transaction given a TxBuilder and a
 // QueryContext. It ensures that the account exists, has a proper number and
