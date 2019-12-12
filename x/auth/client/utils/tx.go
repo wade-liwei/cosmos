@@ -50,14 +50,11 @@ func GenerateOrBroadcastMsgsForRest(cliCtx context.CLIContext, txBldr authtxb.Tx
 
 func CompleteAndBroadcastTxCLIForRest(txBldr authtxb.TxBuilder, cliCtx context.CLIContext, msgs []sdk.Msg) (string,error) {
 	
-	fmt.Println("CompleteAndBroadcastTxCLI-------------------------------------")
-	fmt.Println("0000000000000000----------------")
+	fmt.Println("CompleteAndBroadcastTxCLIForRest-------------------------------------")
 	txBldr, err := PrepareTxBuilder(txBldr, cliCtx)
 	if err != nil {
 		return "",err
 	}
-
-
 	fmt.Println("11111111-------------")
 	fromName := cliCtx.GetFromName()
 	fmt.Println("222222----------------")
@@ -76,9 +73,7 @@ func CompleteAndBroadcastTxCLIForRest(txBldr authtxb.TxBuilder, cliCtx context.C
 		return "",nil
 	}
 
-
 	passphrase :="beconomy" 
-
 
 	fmt.Printf("GetPassphrase  fromName: %v   return value:  %v   ------------- \n",fromName,passphrase)
 
