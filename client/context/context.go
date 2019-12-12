@@ -61,6 +61,7 @@ type CLIContext struct {
 
 func NewCLIContextForRest(fromAddr string)CLIContext{
 
+	var nodeURI string
 	var rpc rpcclient.Client
 
 	nodeURI = viper.GetString(flags.FlagNode)
