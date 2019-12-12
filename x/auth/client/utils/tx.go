@@ -41,14 +41,14 @@ func GenerateOrBroadcastMsgs(cliCtx context.CLIContext, txBldr authtypes.TxBuild
 }
 
 
-func GenerateOrBroadcastMsgsForRest(cliCtx context.CLIContext, txBldr authtxb.TxBuilder, msgs []sdk.Msg, offline bool) (string,error) {
+func GenerateOrBroadcastMsgsForRest(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, msgs []sdk.Msg, offline bool) (string,error) {
 	fmt.Printf("cliCtx.GenerateOnly:  %v  --------------------------------\n",cliCtx.GenerateOnly )
 
 	return CompleteAndBroadcastTxCLIForRest(txBldr, cliCtx, msgs)
 }
 
 
-func CompleteAndBroadcastTxCLIForRest(txBldr authtxb.TxBuilder, cliCtx context.CLIContext, msgs []sdk.Msg) (string,error) {
+func CompleteAndBroadcastTxCLIForRest(txBldr authtypes.TxBuilder, cliCtx context.CLIContext, msgs []sdk.Msg) (string,error) {
 	
 	fmt.Println("CompleteAndBroadcastTxCLIForRest-------------------------------------")
 	txBldr, err := PrepareTxBuilder(txBldr, cliCtx)

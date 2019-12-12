@@ -5,6 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
+
+	"github.com/cosmos/cosmos-sdk/x/auth"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
@@ -74,8 +77,8 @@ func SendSignRequestHandlerFn(cliCtx context.CLIContext)http.HandlerFunc {
 
 		fmt.Printf("req.BaseReq.From:  %v  fromAddr: %v  toAddr: %v  amount: %v   account: %v \n", req.BaseReq.From,fromAddr, toAddr, req.Amount,account)
 
-
-		txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+		txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+		//txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 		cliCtx := context.NewCLIContextForRest(req.BaseReq.From).
 			WithCodec(cdc).
 			WithAccountDecoder(cdc)
