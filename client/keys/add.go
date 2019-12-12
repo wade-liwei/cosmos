@@ -3,8 +3,10 @@ package keys
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -301,10 +303,6 @@ func printCreate(cmd *cobra.Command, info keys.Info, showMnemonic bool, mnemonic
 	return nil
 }
 
-
-
-
-
 // REST
 
 type NewKeyBody struct {
@@ -314,7 +312,6 @@ type NewKeyBody struct {
 	// Seed     string `json="seed"`
 	Type string `json:"type"`
 }
-
 
 func AddNewKeyRequestHandler(w http.ResponseWriter, r *http.Request) {
 	var kb keys.Keybase
@@ -349,24 +346,23 @@ func AddNewKeyRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get bip39 mnemonic
 	var mnemonic string
-	
-    // read entropy seed straight from crypto.Rand and convert to mnemonic
+
+	// read entropy seed straight from crypto.Rand and convert to mnemonic
 	entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	
+
 	mnemonic, err = bip39.NewMnemonic(entropySeed[:])
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	
 
-	info, err := kb.CreateAccount(m.Name, mnemonic, "",m.Password, 0, 0)
+	info, err := kb.CreateAccount(m.Name, mnemonic, "", m.Password, 0, 0)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
@@ -374,15 +370,14 @@ func AddNewKeyRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//printKeyInfo(info, keys.Bech32KeyOutput)
 	res := NewKeyResBody{
-		Name:   m.Name,
+		Name:     m.Name,
 		Password: m.Password,
-		Mnemonic:mnemonic,
-		Address:info.GetAddress().String(),
+		Mnemonic: mnemonic,
+		Address:  info.GetAddress().String(),
 	}
 
 	fmt.Println("post new addr -------------------------")
 	fmt.Println(string(info.GetAddress()))
-
 
 	output, err := json.Marshal(res)
 	if err != nil {
@@ -396,15 +391,11 @@ func AddNewKeyRequestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(output)
 }
 
-
-
 type NewKeyResBody struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
-	Mnemonic string  `json:"mnemonic"`
+	Mnemonic string `json:"mnemonic"`
 	// TODO make seed mandatory
 	// Seed     string `json="seed"`
-	Address  string `json:"address"`
+	Address string `json:"address"`
 }
-
-
