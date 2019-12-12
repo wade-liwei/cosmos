@@ -1,12 +1,15 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 
 	"github.com/cosmos/cosmos-sdk/x/auth"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,10 +20,10 @@ import (
 )
 
 // RegisterRoutes - Central function to define routes that get registered by the main application
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router,cdc *codec.Codec) {
 	r.HandleFunc("/bank/accounts/{address}/transfers", SendRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/bank/balances/{address}", QueryBalancesRequestHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/bank/accounts/sign/{address}transfer",SendSignRequestHandlerFn).Methods("POST")
+	r.HandleFunc("/bank/accounts/sign/{address}transfer",SendSignRequestHandlerFn(cliCtx,cdc)).Methods("POST")
 }
 
 // SendReq defines the properties of a send request's body.
@@ -30,7 +33,7 @@ type SendReq struct {
 }
 
 
-func SendSignRequestHandlerFn(cliCtx context.CLIContext)http.HandlerFunc {
+func SendSignRequestHandlerFn(cliCtx context.CLIContext,cdc *codec.Codec)http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32Addr := vars["address"]
@@ -59,32 +62,16 @@ func SendSignRequestHandlerFn(cliCtx context.CLIContext)http.HandlerFunc {
 
 
 
-		account, err := cliCtx.GetAccount(fromAddr)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		
-
-
-		account, err := cliCtx.GetAccount(fromAddr)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		
-
-
-		fmt.Printf("req.BaseReq.From:  %v  fromAddr: %v  toAddr: %v  amount: %v   account: %v \n", req.BaseReq.From,fromAddr, toAddr, req.Amount,account)
+		fmt.Printf("req.BaseReq.From:  %v  fromAddr: %v  toAddr: %v  amount: %v  \n", req.BaseReq.From,fromAddr, toAddr, req.Amount)
 
 		txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 		//txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 		cliCtx := context.NewCLIContextForRest(req.BaseReq.From).
 			WithCodec(cdc).
-			WithAccountDecoder(cdc)
+			//WithAccountDecoder(cdc)
 
+		msg := types.NewMsgSend(fromAddr, toAddr, req.Amount)
 
-		msg := bank.NewMsgSend(fromAddr, toAddr, req.Amount)
 		hashStr, err := utils.GenerateOrBroadcastMsgsForRest(cliCtx, txBldr, []sdk.Msg{msg}, false); 
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
