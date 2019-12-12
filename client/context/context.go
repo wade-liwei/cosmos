@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	//"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
@@ -57,24 +57,18 @@ type CLIContext struct {
 
 
 
+
+
 func NewCLIContextForRest(fromAddr string)CLIContext{
 
 	var rpc rpcclient.Client
 
-	nodeURI := viper.GetString(client.FlagNode)
+	nodeURI = viper.GetString(flags.FlagNode)
 	if nodeURI != "" {
 		rpc = rpcclient.NewHTTP(nodeURI, "/websocket")
 	}
 
-
 	fmt.Printf("cli nodeURI flag:  %v  \n",nodeURI)
-
-	// fromAddress, fromName, err := GetFromFields(from, genOnly)
-	// if err != nil {
-	// 	fmt.Printf("failed to get from fields: %v", err)
-	// 	os.Exit(1)
-	// }
-
 
 	fromAddress, fromName, err := GetSdkAddress(fromAddr)
 	if err != nil {
@@ -90,46 +84,62 @@ func NewCLIContextForRest(fromAddr string)CLIContext{
 	}
 
 
-
-	res := CLIContext{
+	res :=  CLIContext{
 		Client:        rpc,
 		Output:        os.Stdout,
 		NodeURI:       nodeURI,
 		From:          fromName,
 		OutputFormat:  viper.GetString(cli.OutputFlag),
-		Height:        viper.GetInt64(client.FlagHeight),
-		TrustNode:     viper.GetBool(client.FlagTrustNode),
-		UseLedger:     viper.GetBool(client.FlagUseLedger),
+		Height:        viper.GetInt64(flags.FlagHeight),
+		TrustNode:     viper.GetBool(flags.FlagTrustNode),
+		UseLedger:     viper.GetBool(flags.FlagUseLedger),
 		BroadcastMode: "sync",
 		Verifier:      verifier,
-		Simulate:      viper.GetBool(client.FlagDryRun),
+		Simulate:      viper.GetBool(flags.FlagDryRun),
 		GenerateOnly:  false,
 		FromAddress:   fromAddress,
 		FromName:      fromName,
-		Indent:        viper.GetBool(client.FlagIndentResponse),
-		SkipConfirm:   viper.GetBool(client.FlagSkipConfirmation),
+		Indent:        viper.GetBool(flags.FlagIndentResponse),
+		SkipConfirm:   viper.GetBool(flags.FlagSkipConfirmation),
 	}
 
 	fmt.Printf(`
-	Client:        %v
-	Output:        %v
-	NodeURI:       %v
-	AccountStore:  %v
-	From:          %v
-	OutputFormat:  %v
-	Height:        %v
-	TrustNode:     %v
-	UseLedger:     %v
-	BroadcastMode: %v
-	PrintResponse: %v
-	Verifier:      %v
-	Simulate:      %v
-	GenerateOnly:  %v
-	FromAddress:   %v
-	FromName:      %v
-	Indent:        %v
-	SkipConfirm:   %v		
-	`,res.Client,res.Output,res.NodeURI,res.AccountStore,res.From,res.OutputFormat,res.Height,res.TrustNode,res.UseLedger,res.BroadcastMode,res.PrintResponse,res.Verifier,res.Simulate,res.GenerateOnly,res.FromAddress,res.FromName,res.Indent,res.SkipConfirm)
+	Client:         %v
+	Output:         %v
+	NodeURI:        %v
+	From:           %v
+	OutputFormat:   %v
+	Height:         %v
+	TrustNode:      %v
+	UseLedger:      %v
+	BroadcastMode:  %v
+	Verifier:       %v
+	Simulate:       %v
+	GenerateOnly:   %v
+	FromAddress:    %v
+	FromName:       %v
+	Indent:         %v
+	SkipConfirm:    %v
+	
+	`,res.Client,
+	res.Output,
+	res.NodeURI,
+	res.From,
+	res.OutputFormat,
+	res.Height,
+	res.TrustNode,
+	res.UseLedger,
+	res.BroadcastMode,
+	res.Verifier,
+	res.Simulate,
+	res.GenerateOnly,
+	res.FromAddress,
+	res.FromName,
+	res.Indent,
+	res.SkipConfirm)
+
+
+
 
 	return res
 
