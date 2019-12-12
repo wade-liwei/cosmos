@@ -73,8 +73,6 @@ func SendSignRequestHandlerFn(cliCtx context.CLIContext,cdc *codec.Codec)http.Ha
 		cliCtx := context.NewCLIContextForRest(req.BaseReq.From).
 			WithCodec(cdc)
 			//WithAccountDecoder(cdc)
-
-
 		//msg := bank.NewMsgSend(fromAddr, toAddr, req.Amount)
 		msg := types.NewMsgSend(fromAddr, toAddr, req.Amount)
 

@@ -29,6 +29,7 @@ type RestServer struct {
 	Mux     *mux.Router
 	CliCtx  context.CLIContext
 	KeyBase keybase.Keybase
+	Cdc *codec.Codec
 
 	log      log.Logger
 	listener net.Listener
@@ -44,6 +45,7 @@ func NewRestServer(cdc *codec.Codec) *RestServer {
 		Mux:    r,
 		CliCtx: cliCtx,
 		log:    logger,
+		Cdc: cdc,
 	}
 }
 
