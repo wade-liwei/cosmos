@@ -23,8 +23,12 @@ import (
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router,cdc *codec.Codec) {
 	r.HandleFunc("/bank/accounts/{address}/transfers", SendRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/bank/balances/{address}", QueryBalancesRequestHandlerFn(cliCtx)).Methods("GET")
+}
+
+func RegisterRoutesTransferRest(cliCtx context.CLIContext, r *mux.Router,cdc *codec.Codec) {
 	r.HandleFunc("/bank/accounts/sign/{address}transfer",SendSignRequestHandlerFn(cliCtx,cdc)).Methods("POST")
 }
+
 
 // SendReq defines the properties of a send request's body.
 type SendReq struct {
