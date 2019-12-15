@@ -66,22 +66,26 @@ func SendSignRequestHandlerFn(cliCtx context.CLIContext,cdc *codec.Codec)http.Ha
 
 
 
-		fmt.Printf("req.BaseReq.From:  %v  fromAddr: %v  toAddr: %v  amount: %v  \n", req.BaseReq.From,fromAddr, toAddr, req.Amount)
+		fmt.Printf("req.BaseReq.From:  %v  fromAddr: %v  toAddr: %v  amount: %v  sequence: %v  \n", req.BaseReq.From,fromAddr, toAddr, req.Amount,req.BaseReq.Sequence)
 
 		txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 		//txBldr := authtxb.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+    txBldr = txBldr.WithSequence(req.BaseReq.Sequence)
+    fmt.Printf("txBldr sequence:  %v   ChainID:  %v  \n",txBldr.Sequence(),txBldr.ChainID())
+
+
 		cliCtx := context.NewCLIContextForRest(req.BaseReq.From).
 			WithCodec(cdc)
 			//WithAccountDecoder(cdc)
 		//msg := bank.NewMsgSend(fromAddr, toAddr, req.Amount)
 		msg := types.NewMsgSend(fromAddr, toAddr, req.Amount)
 
-		hashStr, err := utils.GenerateOrBroadcastMsgsForRest(cliCtx, txBldr, []sdk.Msg{msg}, false); 
+		hashStr, err := utils.GenerateOrBroadcastMsgsForRest(cliCtx, txBldr, []sdk.Msg{msg}, false);
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-	
+
 		fmt.Printf("hash str:  %v  ----------------\n",hashStr)
 		w.Write([]byte(hashStr))
 
